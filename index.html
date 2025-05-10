@@ -2,52 +2,55 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Flappi Bird Game</title>
   <style>
-    body {
+    * {
       margin: 0;
-      background: linear-gradient(-45deg, #FFEB3B, #FFD700, #1E3A8A, #000080);
-      background-size: 400% 400%;
-      animation: bgShift 15s ease infinite;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      height: 100vh;
-      overflow: hidden;
-      font-family: sans-serif;
+      padding: 0;
+      box-sizing: border-box;
     }
 
-    @keyframes bgShift {
+    body {
+      background: linear-gradient(-45deg, #FFEB3B, #FFD700, #1E3A8A, #000080);
+      background-size: 400% 400%;
+      animation: backgroundShift 15s ease infinite;
+      font-family: sans-serif;
+      display: flex;
+      justify-content: center;
+      padding: 30px;
+      min-height: 100vh;
+    }
+
+    @keyframes backgroundShift {
       0% { background-position: 0% 50%; }
       50% { background-position: 100% 50%; }
       100% { background-position: 0% 50%; }
     }
 
     #containerWrapper {
-      position: relative;
+      display: flex;
+      align-items: flex-start;
+      gap: 30px;
+      flex-wrap: wrap;
     }
 
     #howToPlay {
-      position: absolute;
-      top: 20px; /* Top-left corner adjustment */
-      left: -500px; /* Move the box further to the left outside the mobile layout */
-      width: 320px;
-      background-color: rgba(0, 0, 0, 0.5);
+      width: 250px;
+      background-color: rgba(0, 0, 0, 0.6);
       color: white;
       padding: 20px;
       border-radius: 12px;
-      font-size: 28px;
-      line-height: 1.5;
+      font-size: 20px;
       font-weight: bold;
-      text-align: left;
-      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.4);
-      z-index: 10;
+      line-height: 1.6;
     }
 
     #gameContainer {
-      width: 360px;
+      width: 90vw;
+      max-width: 360px;
       height: 640px;
-      background-color: white;
+      background-color: #fff;
       border: 6px solid #333;
       border-radius: 40px;
       position: relative;
@@ -83,7 +86,7 @@
       right: 20px;
       background-color: #1e3a8a;
       color: #fff;
-      padding: 8px 16px;
+      padding: 10px 18px;
       border-radius: 12px;
       font-size: 22px;
       z-index: 10;
@@ -111,10 +114,9 @@
       top: 50%;
       left: 20px;
       transform: translateY(-50%);
-      font-size: 50px;
+      font-size: 48px;
       font-weight: bold;
       z-index: 10;
-      text-shadow: 2px 2px 4px rgba(0,0,0,0.4);
     }
 
     #celebrate { color: green; }
@@ -123,18 +125,41 @@
     .crushed {
       transform: scaleX(-1) rotate(90deg);
     }
+
+    @media (max-width: 768px) {
+      #containerWrapper {
+        flex-direction: column;
+        align-items: center;
+      }
+
+      #gameContainer {
+        order: 1;
+      }
+
+      #howToPlay {
+        order: 2;
+        margin-top: 20px;
+        font-size: 18px;
+        width: 90%;
+        max-width: 300px;
+      }
+
+      #celebrate, #loseMessage {
+        font-size: 36px;
+      }
+
+      .button {
+        font-size: 16px;
+      }
+
+      #scoreBox {
+        font-size: 18px;
+      }
+    }
   </style>
 </head>
 <body>
   <div id="containerWrapper">
-    <div id="howToPlay">
-      🎮 <b>How to Play:</b><br>
-      ●Tap or Press Spacebar to jump.<br>
-      ●Avoid pipes.<br>
-      ●Score 5 points to win!<br>
-      ●Click Restart or Play Again.
-    </div>
-
     <div id="gameContainer">
       <div id="bird">🐦</div>
       <div id="celebrate">🎉 You Win!</div>
@@ -142,6 +167,14 @@
       <div id="scoreBox">Score: <span id="score">0</span></div>
       <button id="restartBtn" class="button">🔁 Restart</button>
       <button id="playAgainBtn" class="button">🎮 Play Again</button>
+    </div>
+
+    <div id="howToPlay">
+      🎮 <b>How to Play:</b><br>
+      Tap or Press Spacebar to jump.<br>
+      Avoid hitting the pipes.<br>
+      Score 5 points to win!<br>
+      Click Restart or Play Again.
     </div>
   </div>
 
@@ -168,7 +201,7 @@
       if (!isGameOver) {
         birdTop += gravity;
         bird.style.top = birdTop + "px";
-        if (birdTop > 600) endGame(false);
+        if (birdTop > gameContainer.clientHeight - 40) endGame(false);
       }
     }
 
@@ -182,9 +215,10 @@
 
     function createPipe() {
       const pipeGap = 150;
-      const pipeTopHeight = Math.floor(Math.random() * 250) + 50;
-      const pipeBottomHeight = 640 - pipeTopHeight - pipeGap;
-      const pipeLeft = 360;
+      const containerHeight = gameContainer.clientHeight;
+      const pipeTopHeight = Math.floor(Math.random() * (containerHeight - pipeGap - 100)) + 50;
+      const pipeBottomHeight = containerHeight - pipeTopHeight - pipeGap;
+      const pipeLeft = gameContainer.clientWidth;
 
       const topPipe = document.createElement("div");
       topPipe.classList.add("pipe", "top");
@@ -222,9 +256,7 @@
             topPipe.passed = true;
             score++;
             scoreDisplay.innerText = score;
-            if (score >= 5) {
-              endGame(true);
-            }
+            if (score >= 5) endGame(true);
           }
 
           const birdRect = bird.getBoundingClientRect();
@@ -271,52 +303,4 @@
   </script>
 </body>
 </html>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
